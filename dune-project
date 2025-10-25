@@ -9,7 +9,7 @@
 
 (authors "Adam Byrne <adamrbyrne@gmail.com>")
 
-(maintainers ""Adam Byrne <adamrbyrne@gmail.com>")
+(maintainers "Adam Byrne <adamrbyrne@gmail.com>")
 
 (license MIT)
 
