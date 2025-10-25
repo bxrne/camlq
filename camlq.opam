@@ -5,13 +5,13 @@ description: "JSON Parser"
 maintainer: ["Adam Byrne <adamrbyrne@gmail.com>"]
 authors: ["Adam Byrne <adamrbyrne@gmail.com>"]
 license: "MIT"
-tags: ["parser" "json"]
 homepage: "https://github.com/bxrne/camlq"
 doc: "https://url/to/documentation"
 bug-reports: "https://github.com/bxrne/camlq/issues"
 depends: [
   "dune" {>= "3.20"}
   "ocaml"
+  "ocamlformat" {with-test}
   "odoc" {with-doc}
 ]
 build: [

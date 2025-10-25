@@ -19,8 +19,11 @@
  (name camlq)
  (synopsis "JSON Parser")
  (description "JSON Parser")
- (depends ocaml)
- (tags
-  ("parser" "json")))
+ (depends
+  ocaml
+  (ocamlformat :with-test)))
+
+(formatting
+ (enabled_for ocaml))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
