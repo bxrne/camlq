@@ -1,4 +1,4 @@
 (library
  (name camlq)
- (modules ast parser)
+ (modules ast lexer parser)
  (libraries stdio))
