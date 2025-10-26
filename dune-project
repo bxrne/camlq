@@ -17,7 +17,7 @@
 
 (package
  (name camlq)
- (synopsis "JSON Parser")
+ (synopsis "JSON Parser and Query Tool")
  (description "JSON Parser")
  (depends
   ocaml

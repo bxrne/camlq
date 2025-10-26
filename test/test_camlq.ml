@@ -139,10 +139,10 @@ let test_query_parsing () =
           expected_str
   in
 
-  test_query ".name" ".name";
-  test_query ".address.city" ".address.city";
-  test_query ".courses[0]" ".courses[0]";
-  test_query ".courses[]" ".courses[]";
+  test_query ".name" "..name";
+  test_query ".address.city" "..address.city";
+  test_query ".courses[0]" "..courses[0]";
+  test_query ".courses[]" "..courses[]";
 
   (* Test invalid queries *)
   let test_invalid_query query =
