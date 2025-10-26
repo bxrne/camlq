@@ -1,4 +1,4 @@
 (library
  (name camlq)
- (modules ast lexer parser)
+ (modules ast lexer parser query_ast query_parser query_eval)
  (libraries stdio))

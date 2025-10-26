@@ -6,7 +6,7 @@ let assert_parse_success json_input expected_output =
   let state = init_parser json_input in
   match parse state with
   | PR_Success ast ->
-      let result = to_string ast in
+      let result = Camlq.Ast.to_string ast in
       if result = expected_output then Printf.printf "✓ PASS: %s\n" json_input
       else
         Printf.printf "✗ FAIL: %s\nExpected: %s\nGot: %s\n" json_input
@@ -114,12 +114,109 @@ let test_ast_to_string () =
     "{\"name\": \"Alice\", \"age\": 25., \"active\": true, \"tags\": [\"dev\", \
      \"ocaml\"]}"
   in
-  let result = to_string obj in
+  let result = Camlq.Ast.to_string obj in
 
   if result = expected then Printf.printf "✓ PASS: AST to_string\n"
   else
     Printf.printf "✗ FAIL: AST to_string\nExpected: %s\nGot: %s\n" expected
       result
+
+let test_query_parsing () =
+  print_endline "\n=== Testing Query Parsing ===";
+
+  (* Test basic property access *)
+  let test_query query expected_str =
+    match Camlq.Query_parser.parse_query query with
+    | Some expr ->
+        let result = Camlq.Query_ast.to_string expr in
+        if result = expected_str then
+          Printf.printf "✓ PASS: parse '%s' -> '%s'\n" query result
+        else
+          Printf.printf "✗ FAIL: parse '%s'\nExpected: %s\nGot: %s\n" query
+            expected_str result
+    | None ->
+        Printf.printf "✗ FAIL: parse '%s' -> None (expected %s)\n" query
+          expected_str
+  in
+
+  test_query ".name" ".name";
+  test_query ".address.city" ".address.city";
+  test_query ".courses[0]" ".courses[0]";
+  test_query ".courses[]" ".courses[]";
+
+  (* Test invalid queries *)
+  let test_invalid_query query =
+    match Camlq.Query_parser.parse_query query with
+    | None -> Printf.printf "✓ PASS: invalid query '%s' rejected\n" query
+    | Some _ -> Printf.printf "✗ FAIL: invalid query '%s' accepted\n" query
+  in
+
+  test_invalid_query "";
+  test_invalid_query "name";
+  test_invalid_query "@invalid"
+
+let test_query_evaluation () =
+  print_endline "\n=== Testing Query Evaluation ===";
+
+  (* Create test JSON data *)
+  let test_json =
+    JObject
+      [
+        ("name", JString "John Doe");
+        ("age", JNumber 30.);
+        ( "courses",
+          JArray [ JString "Math"; JString "Science"; JString "History" ] );
+        ( "address",
+          JObject
+            [
+              ("street", JString "123 Main St");
+              ("city", JString "Anytown");
+              ("zip", JString "12345");
+            ] );
+        ("active", JBool true);
+      ]
+  in
+
+  let test_eval query expected_results =
+    match Camlq.Query_parser.parse_query query with
+    | None -> Printf.printf "✗ FAIL: Could not parse query '%s'\n" query
+    | Some expr ->
+        let results = Camlq.Query_eval.eval_query expr test_json in
+        let result_strs = List.map Camlq.Ast.to_string results in
+        let expected_strs = List.map Camlq.Ast.to_string expected_results in
+        if result_strs = expected_strs then
+          Printf.printf "✓ PASS: eval '%s' -> %d results\n" query
+            (List.length results)
+        else
+          Printf.printf "✗ FAIL: eval '%s'\nExpected: %s\nGot: %s\n" query
+            (String.concat "; " expected_strs)
+            (String.concat "; " result_strs)
+  in
+
+  (* Test property access *)
+  test_eval ".name" [ JString "John Doe" ];
+  test_eval ".age" [ JNumber 30. ];
+  test_eval ".active" [ JBool true ];
+
+  (* Test nested property access *)
+  test_eval ".address.city" [ JString "Anytown" ];
+  test_eval ".address.zip" [ JString "12345" ];
+
+  (* Test array indexing *)
+  test_eval ".courses[0]" [ JString "Math" ];
+  test_eval ".courses[1]" [ JString "Science" ];
+  test_eval ".courses[2]" [ JString "History" ];
+
+  (* Test array iteration *)
+  test_eval ".courses[]"
+    [ JString "Math"; JString "Science"; JString "History" ];
+
+  (* Test non-existent properties *)
+  test_eval ".nonexistent" [];
+
+  (* Test invalid array access *)
+  test_eval ".courses[10]" [];
+  test_eval ".name[0]" []
 
 (* Main test runner *)
 let () =
@@ -131,5 +228,7 @@ let () =
   test_complex_json ();
   test_error_cases ();
   test_ast_to_string ();
+  test_query_parsing ();
+  test_query_evaluation ();
 
   print_endline "\nTest suite completed."
