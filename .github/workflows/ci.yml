@@ -26,7 +26,7 @@ jobs:
       run: opam exec -- dune build
 
     - name: Run tests
-      run: opam exec -- dune test
+      run: opam exec -- dune runtest
 
     - name: Check formatting
-      run: opam exec -- dune build @fmt
+      run: opam exec -- dune fmt --check
