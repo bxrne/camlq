@@ -56,19 +56,19 @@ and parse_object (state : lexer_state) (k : json * lexer_state -> 'a) : 'a =
         | _ -> failwith "Expected colon in object");
         let state4 = skip_whitespace state3 in
         parse_value state4 (fun (value, state5) ->
-          let new_acc =
-            (match key with
-            | T_String k -> (k, value)
-            | _ -> failwith "Expected string key")
-            :: acc
-          in
-          let state6 = skip_whitespace state5 in
-          match peek_char state6 with
-          | Some ',' -> parse_pairs (advance state6) new_acc k_inner
-          | _ -> parse_pairs state6 new_acc k_inner
-        )
+            let new_acc =
+              (match key with
+              | T_String k -> (k, value)
+              | _ -> failwith "Expected string key")
+              :: acc
+            in
+            let state6 = skip_whitespace state5 in
+            match peek_char state6 with
+            | Some ',' -> parse_pairs (advance state6) new_acc k_inner
+            | _ -> parse_pairs state6 new_acc k_inner)
   in
-  parse_pairs state [] (fun (pairs, final_state) -> k (JObject pairs, final_state))
+  parse_pairs state [] (fun (pairs, final_state) ->
+      k (JObject pairs, final_state))
 
 and parse_array (state : lexer_state) (k : json * lexer_state -> 'a) : 'a =
   let rec parse_elements state acc k_inner =
@@ -78,24 +78,23 @@ and parse_array (state : lexer_state) (k : json * lexer_state -> 'a) : 'a =
     | None -> failwith "Unexpected EOF in array"
     | _ ->
         parse_value state (fun (value, state1) ->
-          let new_acc = value :: acc in
-          let state2 = skip_whitespace state1 in
-          match peek_char state2 with
-          | Some ',' -> parse_elements (advance state2) new_acc k_inner
-          | _ -> parse_elements state2 new_acc k_inner
-        )
+            let new_acc = value :: acc in
+            let state2 = skip_whitespace state1 in
+            match peek_char state2 with
+            | Some ',' -> parse_elements (advance state2) new_acc k_inner
+            | _ -> parse_elements state2 new_acc k_inner)
   in
-  parse_elements state [] (fun (elements, final_state) -> k (JArray elements, final_state))
+  parse_elements state [] (fun (elements, final_state) ->
+      k (JArray elements, final_state))
 
 (** Parse input string and return result *)
 let parse (state : lexer_state) : parse_result =
   try
     parse_value state (fun (ast, final_state) ->
-      let final_state = skip_whitespace final_state in
-      match peek_char final_state with
-      | None -> PR_Success ast
-      | Some _ -> PR_Error "Extra input after parsing"
-    )
+        let final_state = skip_whitespace final_state in
+        match peek_char final_state with
+        | None -> PR_Success ast
+        | Some _ -> PR_Error "Extra input after parsing")
   with
   | Failure msg -> PR_Error ("Parse error: " ^ msg)
   | exn -> PR_Error ("Unexpected error: " ^ Printexc.to_string exn)
